@@ -1,0 +1,82 @@
+-- توضیحات
+-- اختلاف دو تاریخ به ثانیه
+-- تاریخ شمسی
+-- date format = 14020923123554 --year month day hr min sec -- shamsi
+
+
+ALTER function [dbo].[fn_SecondDeff] (@SysDTM bigint, @tokDTM bigint) returns bigint  as
+
+Begin
+	
+declare @result bigint = 10000
+	declare @DelayDays bigint = 0	
+	
+	declare @NowDate int = (select @SysDTM / 1000000)
+	declare @NowYear int = (select @SysDTM / 10000000000)
+	declare @NowMonth int = (select @SysDTM / 100000000) % 100
+	declare @NowDay  int = @NowDate % 100
+	declare @MonthA int
+	set @MonthA= @NowMonth
+	declare @Time1 int = (@SysDTM % 1000000)
+	declare @NowHr int = (@Time1 / 10000)
+	declare @NowMin int = (@Time1 / 100) % 100
+	declare @NowSec int = (@Time1 % 100)
+	
+	declare @TokenDate int = (select @tokDTM / 1000000)
+	declare @TokenYear int = (select @tokDTM / 10000000000)
+	declare @TokenMonth int = (select @tokDTM / 100000000) % 100
+	declare @TokenDay  int = @TokenDate % 100
+	declare @TikenTime int = (@tokDTM % 1000000)
+	declare @TokenHr int = (@TikenTime / 10000)
+	declare @TokenMin int = (@TikenTime / 100) % 100
+	declare @TokenSec int = (@TikenTime % 100)
+
+	if (@NowDate - @TokenDate > 0)
+		begin
+			if (@NowDay - @TokenDay < 0)
+				begin
+					if (@NowMonth = 1) 
+						begin
+							set @NowDay = @NowDay + 30
+							set @NowMonth = 12
+							set @NowYear = @NowYear - 1
+						end
+					else 
+						begin
+							set @NowDay = @NowDay + 30
+							set @NowMonth = @NowMonth - 1
+						end
+				end
+			if (@NowMonth < @TokenMonth)
+				begin
+					set @NowYear = @NowYear - 1
+					set @NowMonth = @NowMonth + 12
+				end
+
+			declare @DD int	= @NowDay - @TokenDay
+			declare @DM int	= @NowMonth - @TokenMonth
+			declare @DY int	= @NowYear - @TokenYear
+
+			declare @ModifieDelayDays int = 0
+			if ( @MonthA > @TokenMonth and @MonthA < 7) set @ModifieDelayDays = @MonthA - @TokenMonth
+			if ( @MonthA > @TokenMonth and @MonthA > 6 and @TokenMonth < 7 ) set @ModifieDelayDays = 7 - @TokenMonth
+			if ( @MonthA > @TokenMonth and @MonthA > 6 and @TokenMonth > 6 ) set @ModifieDelayDays = 0
+			if ( @MonthA < @TokenMonth and @MonthA < 7 and @TokenMonth > 6 ) set @ModifieDelayDays = @MonthA - 2
+			if ( @MonthA < @TokenMonth and @MonthA < 7 and @TokenMonth < 7 ) set @ModifieDelayDays = 7 - @TokenMonth
+			if ( @MonthA < @TokenMonth and @MonthA < 7 and @TokenMonth < 7 and @MonthA = 1) set @ModifieDelayDays = @ModifieDelayDays-1
+			if ( @MonthA < @TokenMonth and @MonthA > 6) set @ModifieDelayDays = 5
+			
+			set @DelayDays = @DD + (@DM*30) + (@DY * 365) + @ModifieDelayDays
+
+
+		end	
+
+		if(@DelayDays > 0) set @NowHr = @NowHr + (24*@DelayDays)
+			
+			declare @NowTimePerSec bigint = @NowSec + ( @NowMin * 60 ) + (@NowHr * 60 * 60)
+			declare @TokenTimePerSec bigint = @TokenSec + ( @TokenMin * 60 ) + (@TokenHr * 60 * 60)
+
+			set @result = (@NowTimePerSec - @TokenTimePerSec)
+
+		return @result
+END
