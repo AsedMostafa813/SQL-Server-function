@@ -10,7 +10,6 @@ Begin
 	declare @result nvarchar(150)=''	
 	declare @DelayDays bigint = 0	
 
-  --تاریخ امروز با فرمت 14020911120126 @SysDTM 
 	declare @SysDTM bigint = convert(bigint, dbo.fn_DateToShamsiDate(getdate()) + replace(CONVERT(VARCHAR(8), GETDATE(), 108),':',''))  --14020115234514
 	declare @TodayDate int = (select @SysDTM / 1000000)
 	declare @Year int = (select @SysDTM / 10000000000)
