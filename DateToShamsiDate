@@ -1,0 +1,29 @@
+
+ALTER function [dbo].[fn_DateToShamsiDate] (@ChirsDate SmallDateTime) returns varchar(10)  as
+
+begin
+
+  declare @SolarDate varchar(10)
+  declare @Day  Char(2)
+
+  declare @Mon Char(2)
+
+  declare @SDay  Int
+
+  declare @SMon Int
+
+  declare @SYear Int
+
+  set @SYear = dbo.fn_DateToShamsiDatePart(@ChirsDate, 'Y')
+  
+  set @SMon = dbo.fn_DateToShamsiDatePart(@ChirsDate, 'M')
+
+  set @SDay = dbo.fn_DateToShamsiDatePart(@ChirsDate, 'D')
+  if @SMon <= 9 select @Mon = '0' + Convert(Char(1),@SMon) else select @Mon = Convert(Char(2),@SMon)
+  if @SDay <= 9 select @Day = '0' + Convert(Char(1),@SDay) else select @Day = Convert(Char(2),@SDay)
+  
+  --select  @SolarDate = SubString(Convert(Char(4),@SYear),1,4) + '/' + @Mon + '/' + @Day
+  select  @SolarDate = trim(SubString(Convert(Char(4),@SYear),1,4) + @Mon + @Day)
+  return trim(@SolarDate)
+
+end
