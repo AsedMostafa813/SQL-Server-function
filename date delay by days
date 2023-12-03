@@ -4,19 +4,14 @@
 -- ثانیه دقیقه ساعت روز ماه سال
 -- فاصله با تاریخ امروز را بر اساس تعداد روز بازمیگرداند
 
-ALTER function [dbo].[fn_Delay] (@PaymentID bigint) returns nvarchar(150)  as
+ALTER function [dbo].[fn_Delay] (@payDate bigint) returns nvarchar(150)  as
 
 Begin
 	declare @result nvarchar(150)=''	
-	declare @pid bigint = (select PID from dbo.Payments where PaymentID = @PaymentID)
-	declare @uid bigint = (select uid from dbo.Profiles where ProfileID = @pid)
-	declare @fnm nvarchar(130)= (select UName from dbo.Users where UserID = @uid) + ' ' + (select UFamilyName from dbo.Users where UserID = @uid)
 	declare @DelayDays bigint = 0	
 
   --تاریخ امروز با فرمت 14020911120126 @SysDTM 
 	declare @SysDTM bigint = convert(bigint, dbo.fn_DateToShamsiDate(getdate()) + replace(CONVERT(VARCHAR(8), GETDATE(), 108),':',''))  --14020115234514
-	declare @payedDate bigint = (select pymPayDTM from dbo.Payments where PaymentID = @PaymentID)
-	if (@payedDate > 0) set @SysDTM = @payedDate
 	declare @TodayDate int = (select @SysDTM / 1000000)
 	declare @Year int = (select @SysDTM / 10000000000)
 	declare @Month int = (select @SysDTM / 100000000) % 100
