@@ -4,7 +4,7 @@
 -- ثانیه دقیقه ساعت روز ماه سال
 -- فاصله با تاریخ امروز را بر اساس تعداد روز بازمیگرداند
 
-ALTER function [dbo].[fn_Delay] (@payDate bigint) returns nvarchar(150)  as
+ALTER function [dbo].[fn_Delay] (@payDate bigint) returns bigint  as
 
 Begin
 	declare @result nvarchar(150)=''	
@@ -63,6 +63,6 @@ Begin
 			set @DelayDays = @DelayDays - 1
 
 		end	
-	set @result = @fnm + ',' + convert(varchar,@DelayDays)
+	set @result = @DelayDays
 	return @result
 END
