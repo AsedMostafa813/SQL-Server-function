@@ -1,3 +1,11 @@
+-- نحوه استفاده
+--	declare @SysDTM bigint = convert(bigint, dbo.fn_DateToShamsiDate(getdate()) + replace(CONVERT(VARCHAR(8), GETDATE(), 108),':',''))  --14020115234514
+-- ورودی SmallDateTime
+-- خروجی
+-- تاریخ تبدیل شده به شمسی با این فرمت
+-- 14020922124532
+-- ثانیه دقیقه ساعت روز ماه سال
+
 
 ALTER function [dbo].[fn_DateToShamsiDate] (@ChirsDate SmallDateTime) returns varchar(10)  as
 
