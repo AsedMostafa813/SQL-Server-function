@@ -18,7 +18,6 @@ Begin
 	declare @MonthA int
 	set @MonthA= @Month
 
-	declare @payDate bigint = (select pymDTM from dbo.Payments where PaymentID = @PaymentID)
 	declare @YearPD int = (select @payDate / 10000)
 	declare @MonthPD int = (select @payDate / 100) % 100
 	declare @DayPD int = @payDate % 100
