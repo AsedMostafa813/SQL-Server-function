@@ -1,0 +1,74 @@
+--توضیحات
+-- یک تاریخ شمسی را با فرمت زیر میگیرد
+-- 14020821145221
+-- ثانیه دقیقه ساعت روز ماه سال
+-- فاصله با تاریخ امروز را بر اساس تعداد روز بازمیگرداند
+
+ALTER function [dbo].[fn_Delay] (@PaymentID bigint) returns nvarchar(150)  as
+
+Begin
+	declare @result nvarchar(150)=''	
+	declare @pid bigint = (select PID from dbo.Payments where PaymentID = @PaymentID)
+	declare @uid bigint = (select uid from dbo.Profiles where ProfileID = @pid)
+	declare @fnm nvarchar(130)= (select UName from dbo.Users where UserID = @uid) + ' ' + (select UFamilyName from dbo.Users where UserID = @uid)
+	declare @DelayDays bigint = 0	
+
+  --تاریخ امروز با فرمت 14020911120126 @SysDTM 
+	declare @SysDTM bigint = convert(bigint, dbo.fn_DateToShamsiDate(getdate()) + replace(CONVERT(VARCHAR(8), GETDATE(), 108),':',''))  --14020115234514
+	declare @payedDate bigint = (select pymPayDTM from dbo.Payments where PaymentID = @PaymentID)
+	if (@payedDate > 0) set @SysDTM = @payedDate
+	declare @TodayDate int = (select @SysDTM / 1000000)
+	declare @Year int = (select @SysDTM / 10000000000)
+	declare @Month int = (select @SysDTM / 100000000) % 100
+	declare @Day  int = @TodayDate % 100
+	declare @MonthA int
+	set @MonthA= @Month
+
+	declare @payDate bigint = (select pymDTM from dbo.Payments where PaymentID = @PaymentID)
+	declare @YearPD int = (select @payDate / 10000)
+	declare @MonthPD int = (select @payDate / 100) % 100
+	declare @DayPD int = @payDate % 100
+
+	if (@TodayDate-@payDate > 0)
+		begin
+			if (@Day - @DayPD < 0)
+				begin
+					if (@Month = 1) 
+						begin
+							set @Day = @Day + 30
+							set @Month = 12
+							set @Year = @Year - 1
+						end
+					else 
+						begin
+							set @Day = @Day + 30
+							set @Month = @Month - 1
+						end
+				end
+			if (@Month < @MonthPD)
+				begin
+					set @Year = @Year - 1
+					set @Month = @Month + 12
+				end
+
+			declare @DD int	= @Day - @DayPD
+			declare @DM int	= @Month - @MonthPD
+			declare @DY int	= @Year - @YearPD
+
+			declare @ModifieDelayDays int = 0
+			if ( @MonthA > @MonthPD and @MonthA < 7) set @ModifieDelayDays = @MonthA - @MonthPD
+			if ( @MonthA > @MonthPD and @MonthA > 6 and @MonthPD < 7 ) set @ModifieDelayDays = 7 - @MonthPD
+			if ( @MonthA > @MonthPD and @MonthA > 6 and @MonthPD > 6 ) set @ModifieDelayDays = 0
+			if ( @MonthA < @MonthPD and @MonthA < 7 and @MonthPD > 6 ) set @ModifieDelayDays = @MonthA - 2
+			if ( @MonthA < @MonthPD and @MonthA < 7 and @MonthPD < 7 ) set @ModifieDelayDays = 7 - @MonthPD
+			if ( @MonthA < @MonthPD and @MonthA < 7 and @MonthPD < 7 and @MonthA = 1) set @ModifieDelayDays = @ModifieDelayDays-1
+			if ( @MonthA < @MonthPD and @MonthA > 6) set @ModifieDelayDays = 5
+			
+			set @DelayDays = @DD + (@DM*30) + (@DY * 365) + @ModifieDelayDays
+
+			set @DelayDays = @DelayDays - 1
+
+		end	
+	set @result = @fnm + ',' + convert(varchar,@DelayDays)
+	return @result
+END
